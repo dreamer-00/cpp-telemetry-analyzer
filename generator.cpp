@@ -4,6 +4,7 @@
 #include <limits>
 #include <ctime>
 #include <random>
+#include <vector>
 
 using namespace std;
 int main(){
