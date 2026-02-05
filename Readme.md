@@ -39,37 +39,10 @@ cpp-telemetry-analyzer/
 └── README.md
 
 ---
+                                                                            
+## ⚙️ How It Works        
 
-## ⚙️ How It Works
-
-### Step 1 — Generate Data
-
-Compile and run:
-
-````bash
-g++ generator.cpp -O2 -o generator
-./generator
-
----
-
-## ⚙️ How It Works
-
-### Step 1 — Generate Data
-
-Compile and run:
-
-```bash
-g++ generator.cpp -O2 -o generator
-./generator
-
----
-
-## ⚙️ How It Works
-
-### Step 1 — Generate Data
-
-Compile and run:
-```bash
+### Step 1 - Generate Data
 g++ generator.cpp -O2 -o generator
 ./generator
 This creates data.txt containing millions of random values.
@@ -142,4 +115,4 @@ CPU cache optimization experiments
 From raw data to volatility metrics — a beginner-friendly C++ telemetry pipeline focused on performance awareness.
 
 This project represents an early step into systems programming and real-time data analysis.
-````
+
