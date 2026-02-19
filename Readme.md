@@ -1,118 +1,162 @@
-# 🚀 C++ Telemetry Analyzer
+# 📊 High-Frequency Telemetry Analyzer (C++)
 
-A C++ project that simulates a high-frequency telemetry pipeline by generating millions of data points, computing volatility (standard deviation), and benchmarking processing performance.
+A high-performance C++ telemetry pipeline that generates millions of samples, computes statistical volatility (standard deviation), and benchmarks execution time using both single-threaded and multi-threaded analysis.
 
-This project is inspired by real-world systems used in **high-frequency trading, satellite telemetry, and real-time analytics**.
+This project focuses on **systems-level performance**, not just correctness.
 
 ---
 
-## 🧠 Overview
+## 🎯 Project Goals
 
-The project consists of two main components:
+This project was built to understand:
 
-### 1. Generator (`generator.cpp`)
+- Large-scale data generation
+- File I/O bottlenecks vs CPU computation
+- Statistical volatility (standard deviation)
+- Multithreaded computation (parallel reduction)
+- Accurate benchmarking
+- Real-world performance debugging
 
-Generates a large dataset (default: **5,000,000 samples**) of random integers and writes them to `data.txt`.
+It simulates a simplified **high-frequency telemetry / analytics engine**.
 
-This simulates incoming telemetry / market data.
+---
 
-### 2. Engine (`engine.cpp`)
+## ✨ Features
 
-Reads the generated data, computes:
+### ✅ Data Generator
+Generates millions of random integer samples and writes them to disk.
 
-- Total samples
+- Uses `std::mt19937`
+- Produces realistic large datasets
+- Avoids trivial “toy inputs”
+
+---
+
+### ✅ Analysis Engine
+
+Computes:
+
 - Mean
 - Volatility (Standard Deviation)
 
-It also benchmarks how long the entire computation takes using `std::chrono`.
+Implements:
 
-The analyzer measures **real execution time**, similar to how low-latency systems evaluate performance.
+- Chunked workload splitting
+- Multi-threaded variance calculation
+- Safe thread-local accumulation
+- Final reduction on main thread
+
+Pattern used: **Parallel Reduction**
+
+---
+
+### ✅ Benchmarking
+
+Uses `std::chrono` to measure **compute time only** (I/O excluded).
+
+This exposes the real performance of the analytics engine rather than disk speed.
 
 ---
 
 ## 📂 Project Structure
 
-cpp-telemetry-analyzer/
-├── generator.cpp # Generates massive telemetry dataset
-├── engine.cpp # Processes data + benchmarks execution
-├── data.txt # Generated dataset (created at runtime)
+telemetry-analyzer/
+├── generator.cpp // Creates large dataset
+├── engine.cpp // Multi-threaded analysis + benchmark
 └── README.md
 
+
 ---
-                                                                            
-## ⚙️ How It Works        
 
-### Step 1 - Generate Data
+## ⚙️ Build Instructions
+
+### Compile Generator
+
+```bash
 g++ generator.cpp -O2 -o generator
+Run Generator
 ./generator
-This creates data.txt containing millions of random values.
+Creates:
 
-### Step 2 — Analyze + Benchmark
+data.txt
+(≈ 5 million samples)
 
-Compile and run:
-g++ engine.cpp -O2 -o engine
+Compile Analyzer (Multi-Threaded)
+g++ analyzer.cpp -O3 -pthread -o analyzer
+Run Engine
 ./engine
+🧪 Example Output
+Samples: 5000000
+Mean: 50.01
+Volatility: 28.86
+Time: 15 ms
+(Timing measured only for computation, not file I/O.)
+```
 
-### Example output:
+🧠 Key Engineering Lessons
 
-    Samples: 5000000
-    Mean: 50.47
-    Volatility: 28.82
-    Processing Time: 410 ms
+1. Never Benchmark I/O With Compute
+Initial measurements incorrectly included file reading and text parsing (~1.1s).
 
-📐 Volatility Formula
+After isolating computation:
 
-Standard Deviation is computed as:
-    *sqrt( Σ(x − mean)² / N )*
-This is the same metric commonly used in finance (price volatility) and signal processing (noise estimation).
-⏱ Benchmarking
+→ execution dropped to ~15ms.
 
-### Execution time is measured using:
-    std::chrono::high_resolution_clock
+This demonstrates a critical systems principle:
 
+Always separate I/O from CPU benchmarking.
 
-Timing starts before file reading and ends after volatility calculation, giving an end-to-end performance metric.
+2. Parallel Reduction
+Data is divided into equal chunks:
 
-The code is compiled with -O2 to enable compiler optimizations.
+Thread 0 → chunk 0
+Thread 1 → chunk 1
+Thread 2 → chunk 2
+Thread 3 → chunk 3
+Each thread computes partial variance.
+Main thread performs final reduction.
 
-🎯 Key Concepts Demonstrated
+No locks.
+No atomics.
+No shared writes.
 
-Large-scale data generation
-File I/O in C++
-Vector-based data ingestion
-Statistical computation (mean + standard deviation)
-Performance benchmarking with std::chrono
-Compiler optimization (-O2)
-Basic telemetry pipeline design
+3. Memory Bandwidth Bound
+At ~15ms for 5M elements, performance approaches hardware memory limits.
 
-🧪 Why This Project Exists
+Further gains require:
 
-### This project was built to understand:
+Single-pass algorithms
+SIMD
+Memory-mapped files
+Binary format
+Not just “more threads”.
 
-How real systems process large numeric streams
-How volatility is computed in practice
-How execution time is measured in performance-critical software
-How to structure multi-stage C++ pipelines
+🚧 Possible Extensions
 
-### It serves as a foundational systems project before moving toward:
-Streaming algorithms (no vectors)
-Numerically stable variance (Welford)
-Cache-aware processing
-Low-latency design
-
-🚧 Future Improvements
-
-### Planned upgrades:
-
-Streaming mean/variance (no full dataset storage)
-Numerically stable volatility calculation
-CSV support
-Larger datasets
-CPU cache optimization experiments
+Parallel mean computation
+Streaming Welford algorithm (single pass)
+Binary file format (faster load)
+Memory-mapped input
+Cache-line optimization
+CPU core auto-detection
 
 ✅ Summary
+This project demonstrates a realistic telemetry analytics pipeline with emphasis on performance engineering rather than toy examples.
 
-From raw data to volatility metrics — a beginner-friendly C++ telemetry pipeline focused on performance awareness.
+It covers:
 
-This project represents an early step into systems programming and real-time data analysis.
+Large data handling
+Multithreading
+Reduction patterns
+Proper benchmarking
+Bottleneck analysis
+Built as a systems-focused learning project toward low-latency / high-performance C++.
 
+🧑‍💻 Author Notes
+
+This project intentionally avoids frameworks and abstractions to expose:
+threading mechanics
+memory behavior
+performance limits
+
+It is designed as a stepping stone toward HFT / game engine / infrastructure-style programming.
